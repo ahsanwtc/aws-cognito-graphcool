@@ -1,5 +1,6 @@
 <html>
 	<head>
+        <script type="text/javascript" src="config.js"></script>
 		<script type="text/javascript" src="browser/dist/aws-sdk.min.js"></script>
 
 		<script type="text/javascript" src="lib/axios/dist/axios.standalone.js"></script>
@@ -12,12 +13,12 @@
 	    <script type="text/javascript" src="lib/apiGatewayCore/apiGatewayClient.js"></script>
 	    <script type="text/javascript" src="lib/apiGatewayCore/simpleHttpClient.js"></script>
 	    <script type="text/javascript" src="lib/apiGatewayCore/utils.js"></script>
+
 	    <script type="text/javascript" src="apigClient.js"></script>
 	</head>
 	<body>
 	  	<div id="fb-root"></div>
 	  	<script>
-            var config = require('./config.json');
 	  		(function (d, s, id) {
 	    		var js, fjs = d.getElementsByTagName(s)[0];
 	    		if (d.getElementById(id)) return;
