@@ -1,10 +1,10 @@
-const doc = require('dynamodb-doc');
+const Lokka = require('lokka').Lokka;
+const Transport = require('lokka-transport-http').Transport;
 
-const dynamo = new doc.DynamoDB();
+const client = new Lokka({
+    transport: new Transport(process.env.GRAPHCOOL_API)
+});
 
-var jwt = require('jsonwebtoken');
-var request = require('request');
-var jwkToPem = require('jwk-to-pem');
 
 exports.handler = (event, context, callback) => {
     console.log('starting');
@@ -12,11 +12,22 @@ exports.handler = (event, context, callback) => {
     console.log("---------------Context:"+JSON.stringify(context, null, 2));
     console.log("---------------Event:"+JSON.stringify(event, null, 2));
 
-    if (event.params !== null && event.params !== undefined) {
-        var token = event.params.header.Authorization;
-        var decodedJwt = jwt.decode(token, {complete: true});
-        console.log("---------------Token:"+JSON.stringify(decodedJwt, null, 2));
-    }
+    const operation = event["body-json"].operation;
+    const payload = event["body-json"].payload;
 
-    callback(null, 'Hello from Lambda');
+    switch (operation) {
+        case "authentication":
+            client.mutate(`{
+                authenticateFacebookUser(facebookToken: "${payload.token}") {
+                    token
+                }
+            }`).then((token) => callback(null, {
+                statusCode: 200,
+                token: token,
+                body: 'success'
+            }));
+            break;
+        default:
+            callback(new Error(`Unrecognized operation "${operation}"`));
+    }
 };
