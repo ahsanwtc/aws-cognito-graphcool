@@ -1,0 +1,87 @@
+<html>
+	<head>
+		<script type="text/javascript" src="browser/dist/aws-sdk.min.js"></script>
+
+		<script type="text/javascript" src="lib/axios/dist/axios.standalone.js"></script>
+	    <script type="text/javascript" src="lib/CryptoJS/rollups/hmac-sha256.js"></script>
+	    <script type="text/javascript" src="lib/CryptoJS/rollups/sha256.js"></script>
+	    <script type="text/javascript" src="lib/CryptoJS/components/hmac.js"></script>
+	    <script type="text/javascript" src="lib/CryptoJS/components/enc-base64.js"></script>
+	    <script type="text/javascript" src="lib/url-template/url-template.js"></script>
+	    <script type="text/javascript" src="lib/apiGatewayCore/sigV4Client.js"></script>
+	    <script type="text/javascript" src="lib/apiGatewayCore/apiGatewayClient.js"></script>
+	    <script type="text/javascript" src="lib/apiGatewayCore/simpleHttpClient.js"></script>
+	    <script type="text/javascript" src="lib/apiGatewayCore/utils.js"></script>
+	    <script type="text/javascript" src="apigClient.js"></script>
+	</head>
+	<body>
+	  	<div id="fb-root"></div>
+	  	<script>
+            var config = require('./config.json');
+	  		(function (d, s, id) {
+	    		var js, fjs = d.getElementsByTagName(s)[0];
+	    		if (d.getElementById(id)) return;
+	    		js = d.createElement(s); js.id = id;
+	    		js.src = `http://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.10&appId=${config.appId}`;
+	    		fjs.parentNode.insertBefore(js, fjs);
+	  		}(document, 'script', 'facebook-jssdk'));
+	  	</script>
+
+	  	<script>
+
+	  		function getFacebookToken() {
+	    		FB.getLoginStatus(function (response) {
+	      			if (response.status === 'connected') {
+	        			console.log(response.authResponse.accessToken)
+	        			// set the region of identity pool
+						AWS.config.region = config.region;
+
+						// configure the credentials provider to use the identity pool
+						AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+				            IdentityPoolId: config.identityPoolId,
+				            Logins: {
+				                   'graph.facebook.com': response.authResponse.accessToken
+				            }
+				        });
+
+						// Make the call to obtain credentials
+						var cognitoToken;
+						AWS.config.credentials.get(() => {
+				            // Credentials will be available when this function is called.
+				            var accessKeyId = AWS.config.credentials.accessKeyId;
+				            var secretAccessKey = AWS.config.credentials.secretAccessKey;
+				            var sessionToken = AWS.config.credentials.sessionToken;
+
+				                //-------------------start calling lambdapost
+				                var apigClient = apigClientFactory.newClient({
+				                    accessKey: accessKeyId,
+				                    secretKey: secretAccessKey,
+				                    sessionToken: sessionToken, //OPTIONAL: If you are using temporary credentials you must include the session token
+				                    region: config.region
+				                });
+
+				                apigClient.authPost([], [], [])
+				                    .then(function(result){
+				                        console.log(result.data);
+				                        dataResult = result.data;
+				                        var resultStr = result.data;
+				                        $('#results').html(resultStr);
+				                    }).catch( function(result){
+				                        console.log("error: " + result);
+				                    });
+
+				                //-------------------------------------------
+
+				        });
+
+
+	      			} else {
+	        			alert('The user didn`t authorize correctly with Facebook')
+	      			}
+	    		});
+	  		}
+	  	</script>
+
+		<fb:login-button scope="public_profile,email" onlogin="getFacebookToken();"></fb:login-button>
+	</body>
+</html>
