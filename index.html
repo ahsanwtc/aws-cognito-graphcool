@@ -61,12 +61,30 @@
 				                    region: config.region
 				                });
 
-				                apigClient.authPost([], [], [])
+								var params = {
+									// This is where any header, path, or querystring request params go.
+								};
+
+								var body = {
+									//This is where you define the body of the request
+									"operation": "authentication",
+									"payload": {
+										"token": response.authResponse.accessToken
+									}
+								};
+
+								var additionalParams = {
+									//If there are any unmodeled query parameters or headers that need to be sent with the request you can add them here
+									headers: {
+										// "Authorization" : AWS.config.credentials.identityId
+									}
+								};
+
+				                apigClient.authPost(params, body, additionalParams)
 				                    .then(function(result){
 				                        console.log(result.data);
 				                        dataResult = result.data;
 				                        var resultStr = result.data;
-				                        $('#results').html(resultStr);
 				                    }).catch( function(result){
 				                        console.log("error: " + result);
 				                    });
